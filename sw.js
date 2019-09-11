@@ -23,7 +23,7 @@ self.addEventListener('install', function(event) {
 			function (...args){
 				console.log("[SW] Something failed (install): ",args);
 			}
-		);
+		)
 	);
 });
 
