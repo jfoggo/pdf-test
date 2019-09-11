@@ -109,7 +109,9 @@ function canvasClickStart(event){
 			width: width,
 			height: height
 		});
+                event.preventDefault();
 	});
+        event.preventDefault();
 }
 
 function canvasClickEnd(event){
