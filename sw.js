@@ -7,10 +7,10 @@ var urlsToCache = [
 	'/pdf-test/main.css',
 	'/pdf-test/main.js',
 	'/pdf-test/manifest.json',
-	'/pdf-test/sw.js',
 	// JQUERY + JQUERY UI RESOURCES
 	'https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js',
 	'https://code.jquery.com/ui/1.12.1/jquery-ui.js',
+	'https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js',
 	// BOOTSTRAP RESOURCES
 	'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css',
 	'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js',
@@ -37,7 +37,7 @@ self.addEventListener('install', function(event) {
 	);
 });
 
-/*
+
 // Fetch Event
 self.addEventListener('fetch', function(event) {
 	console.log("[SW] fetch event: ",event);
@@ -70,4 +70,3 @@ self.addEventListener('fetch', function(event) {
 		)
 	);
 });
-*/
