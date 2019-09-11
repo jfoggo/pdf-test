@@ -37,6 +37,7 @@ self.addEventListener('install', function(event) {
 	);
 });
 
+/*
 // Fetch Event
 self.addEventListener('fetch', function(event) {
 	console.log("[SW] fetch event: ",event);
@@ -69,3 +70,4 @@ self.addEventListener('fetch', function(event) {
 		)
 	);
 });
+*/
