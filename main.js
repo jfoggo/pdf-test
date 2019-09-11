@@ -1,6 +1,7 @@
 class MediaFile {
-    constructor(id,src,pdf){
-        this.id = id;
+    constructor(id,name,src,pdf){
+        this.id = "mf"+id;
+		this.name = name;
         this.src = src;
 		this.pdf = pdf;
     }
@@ -13,6 +14,9 @@ var files = [];
 var snippets = [];
 var cut_scale = { x: 1, y: 1};
 var canvasPages = 1;
+var canvasWidth,canvasHeight;
+var idCounter = 0;
+var currentlyRendering = false;
 
 function init(){
 	$(".side-btn").click(toggleSide);
@@ -41,21 +45,26 @@ function init(){
 			if (!$(ui.draggable).hasClass("already-dropped")){
 				img = $(ui.draggable).clone();
 				var offset = $(this).offset();
-				var s = snippets.filter(e=>e.src == img.attr("src"));
-				console.log("FILTERED: ",s);
 				img.css({
 					position: "absolute",
 					left: parseFloat($(ui.helper).css("left"))-offset.left,
 					top: parseFloat($(ui.helper).css("top"))-offset.top,
 					zIndex: $(ui.helper).css("z-index"),
-					maxWidth: "100%",
 					maxHeight: "100%",
-					width: s.width,
-					height: s.height,
+					maxWidth: "100%"
 				});
+				var mf_id = img.attr("id");
+				var mf = files.concat(snippets).filter(e=>e.id == mf_id)[0];
 				img.draggable({
 					revert: "invalid",
-					stack: "img"
+					stack: "img",
+					start: function(event,ui){
+						$(ui.helper).css({
+							width: mf.width,
+							height: mf.height
+						});
+						$(ui.helper).addClass("active");
+					}
 				});
 			}
 			
@@ -76,11 +85,19 @@ function init(){
 	});
 	
 	$(document).keydown(function(event){
-		if ($("nav li[name='Files']").hasClass("active")){
+		if (!currentlyRendering && $("nav li[name='Files']").hasClass("active")){
 			if (event.keyCode == 37) $("#last-page").click();
 			else if (event.keyCode == 39) $("#next-page").click();
 		}
 	});
+	
+	canvasHeight = parseFloat($("canvas:visible").css("height"));
+	canvasWidth = parseFloat($("canvas:visible").css("width"));
+	var c = $("#paste-main canvas")[0];
+	c.width = canvasWidth;
+	c.height = canvasHeight;
+	clearCanvas("#paste-main canvas");
+	clearCanvas("#cut-main canvas");
 }
 
 function canvasClickStart(event){
@@ -140,9 +157,9 @@ function cut_snippet(){
 	ctx.putImageData(data,0,0);
 	//ctx.drawImage($("#cut-main canvas")[0],parseFloat(s.css("left"))*cut_scale.x,parseFloat(s.css("top"))*cut_scale.y,parseFloat(s.css("width"))*cut_scale.x,parseFloat(s.css("height"))*cut_scale.y,0,0,parseFloat(s.css("width")),parseFloat(s.css("height")));
 	
-	var imgSrc = canvas[0].toDataURL("image/png");
+	var imgSrc = canvas[0].toDataURL("image/png",1.0);
 	
-	var mf = new MediaFile("Snippet",imgSrc);
+	var mf = new MediaFile(idCounter++,"Snippet",imgSrc);
 	mf.width = parseFloat(s.css("width"));
 	mf.height = parseFloat(s.css("height"));
 	
@@ -184,6 +201,7 @@ function clickPanel(event){
 	$(txt == "Files" ? "#cut-main" : "#paste-main").removeClass("hidden");
 	$(".Files-tools, .Snippets-tools").addClass("hidden");
 	$("."+txt+"-tools").removeClass("hidden");
+	$("#square").css("display","none");
 }
 
 function clickNavButton(event){
@@ -214,7 +232,7 @@ function addNewFile(event){
                 let typedarray = new Uint8Array(this.result);
                 pdfjsLib.getDocument(typedarray).then(function(pdf){
                     pdfToImgSrc(pdf).then(function(imgSrc){
-						var mf = new MediaFile(file.name,imgSrc,pdf);
+						var mf = new MediaFile(idCounter++,file.name,imgSrc,pdf);
 						files.push(mf);
 						appendImage("#cut-files",imgSrc,file.name,mf);
 					}).catch(function(err){
@@ -227,7 +245,7 @@ function addNewFile(event){
         }
         else {                                // Handle Images
             fileReader.onload = function(event){
-                var mf = new MediaFile(file.name,event.target.result);
+                var mf = new MediaFile(idCounter++,file.name,event.target.result);
 				files.push(mf);
                 appendImage("#cut-files",event.target.result,file.name,mf);
             }
@@ -242,17 +260,23 @@ function pdfToImgSrc(pdf,pageNr){
         var canvas = $("<canvas class='hidden'></canvas>");
         canvas.appendTo("body");
         pdf.getPage(pageNr).then(function(page){
-            var viewport = page.getViewport(1.0);
+            var viewport = page.getViewport(2);
             canvas[0].width = viewport.width;
             canvas[0].height = viewport.height;
+			$("button").prop("disabled",true);
+			currentlyRendering = true;
             var renderTask = page.render({canvasContext:canvas[0].getContext("2d"), viewport:viewport});
             renderTask.promise.then(function(){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
                 // save canvas as image
                 var imgData = canvas[0].toDataURL("image/jpeg", 1.0);
                 // Append image to side list
                 resolve(imgData);
 				canvas.remove();
             }).catch(function(...args){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
 			});
@@ -265,8 +289,12 @@ function pdfToImgSrc(pdf,pageNr){
 
 function appendImage(listId, imgSrc, fileName, mf){
     var list = $(listId);
-    var img = $("<div class='text-center' name='"+fileName+"'><hr/><span>"+fileName+"</span> <span class='glyphicon glyphicon-remove-circle hover-red' style='color:grey' onclick='removeImage(this)'></span><br/><img style='width:"+mf.width+";height:"+mf.height+";' src='"+imgSrc+"' class='preview-img'></div>");
-    img.click(function(event){
+    var img = $("<div class='text-center' name='"+fileName+"'><hr/><span>"+fileName+"</span> <span class='glyphicon glyphicon-remove-circle hover-red' style='color:grey' onclick='removeImage(this)'></span><br/><img id="+mf.id+" style='width:"+mf.width+";height:"+mf.height+";' src='"+imgSrc+"' class='preview-img'></div>");
+    img.find("img").css({
+		width: mf.width,
+		height: mf.height
+	});
+	img.click(function(event){
 		if (listId == "#cut-files"){
 			var imgTag = $(event.target).find("img");
 			if (imgTag.length == 0) imgTag = $(event.target).closest("img");
@@ -285,12 +313,24 @@ function appendImage(listId, imgSrc, fileName, mf){
 		}
 	});
 	if (listId == "#merge-snippets") {
+		var mf_id = img.find("img").attr("id");
+		var mf = files.concat(snippets).filter(e=>e.id == mf_id)[0];
 		img.find("img").draggable({
 			appendTo: "#content",
 			containment: "window",
 			helper: "clone",
 			revert: "invalid",
-			stack: "img"
+			stack: ".canvas-wrapper img",
+			start: function(event,ui){
+				$(ui.helper).css({
+					width: mf.width,
+					height: mf.height,
+					maxWidth: "100%",
+					maxHeight: "100%",
+				});
+				$(".canvas-wrapper img.active").removeClass("active");
+				$(ui.helper).addClass("active");
+			}
 		});
 	}
     if (list.find("img").length == 0) list.empty();
@@ -299,7 +339,11 @@ function appendImage(listId, imgSrc, fileName, mf){
 
 function removeImage(elem){
 	console.log("REMOVE: ",elem);
-	$(elem).closest("div").remove();
+	var div = $(elem).closest("div");
+	var id = div.find("img").attr("id");
+	files = files.filter(e=>e.id != id);
+	snipptets = snippets.filter(e=>e.id != id);
+	div.remove();
 }
 
 function drawImageOnCanvas(img,canvas){
@@ -311,7 +355,28 @@ function drawImageOnCanvas(img,canvas){
 	console.log("C: ",cWidth," ",cHeight);
 
 	//canvas.getContext("2d").drawImage(img,0,0);
-	
+	console.log("before: ",iWidth,iHeight);
+	if (iWidth > canvasWidth || iHeight > canvasHeight){
+		var scale = 1;
+		if (iWidth > canvasWidth && iHeight > canvasHeight) {
+			if (iWidth > iHeight) scale = canvasWidth/iWidth;
+			else scale = canvasHeight/iHeight;
+		}
+		else if (iWidth > canvasWidth) scale = canvasWidth/iWidth;
+		else scale = canvasHeight/iHeight;
+		
+		iWidth *= scale;
+		iHeight *= scale;
+	}
+	console.log("scale: "+scale);
+	console.log("after: ",iWidth,iHeight);
+	$(canvas).closest(".canvas-wrapper").outerWidth(iWidth);
+	$(canvas).closest(".canvas-wrapper").outerHeight(iHeight);
+	$(canvas).closest(".canvas-wrapper").css("left",-iWidth/2);
+	canvas.width = iWidth;
+	canvas.height = iHeight;
+	canvas.getContext("2d").drawImage(img,0,0,iWidth,iHeight);
+	/*
 	if (iWidth < iHeight){	// HOCHFORMAT
 		canvas.width = iWidth;
 		canvas.height = iHeight;
@@ -328,6 +393,7 @@ function drawImageOnCanvas(img,canvas){
 			canvas.getContext("2d").drawImage(img,0,0);
 		}
 	}
+	*/
 	cut_scale.x = canvas.width/$(canvas).outerWidth();
 	cut_scale.y = canvas.height/$(canvas).outerHeight();
 }
@@ -336,14 +402,20 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 	return new Promise(function(resolve,reject){
 		pageNr = parseInt(pageNr) ? pageNr : 1;
 		pdf.getPage(pageNr).then(function(page){
-			var viewport = page.getViewport(1.0);
+			var viewport = page.getViewport(2);
 			canvas[0].width = viewport.width;
 			canvas[0].height = viewport.height;
+			$("button").prop("disabled",true);
+			currentlyRendering = true;
 			var renderTask = page.render({canvasContext:canvas[0].getContext("2d"), viewport:viewport});
 			renderTask.promise.then(function(){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
 				if (canvas.closest("#cut-main").length > 0) $("#cur-page").text(pageNr);
 				resolve();
 			}).catch(function(...args){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
 			});
@@ -380,10 +452,9 @@ function saveAsPdf(){
 		return parseInt($(a).css("z-index")) > parseInt($(b).css("z-index"));
 	});
 	var canvas = $("#paste-main canvas")[0];
-	canvas.width = 595;
-	canvas.height = 842;
 	var ctx = canvas.getContext("2d");
-	ctx.rect(0,0,1000*1000,1000*1000);
+	// Draw white background
+	ctx.rect(0,0,canvasWidth,canvasPages*canvasHeight);
 	ctx.fillStyle = "white";
 	ctx.fill();
 	for (var i=0;i<imgs.length;i++){
@@ -393,21 +464,53 @@ function saveAsPdf(){
 		var w = parseFloat(imgs.eq(i).outerWidth());
 		var h = parseFloat(imgs.eq(i).outerHeight());
 		ctx.drawImage(imgs[i],x,y,w,h);
-		//imgs.eq(i).remove();
 	}
-	var imgData = canvas.toDataURL("image/jpeg");
-	var downloadPdf = new jsPDF();
-	downloadPdf.addImage(imgData,"JPEG",0,0);
+	
+	var downloadPdf = new jsPDF("p","mm",[canvasWidth*0.2645833333,canvasHeight*0.2645833333]);	// 1px = 0.2645833333 mm
+	var c = $("<canvas class='hidden'></canvas>");
+	c.appendTo("body");
+	c.css({
+		width: canvasWidth,
+		height: canvasHeight
+	});
+	c[0].width = canvasWidth;
+	c[0].height = canvasHeight;
+	var ct = c[0].getContext("2d");
+	for (var i=0;i<canvasPages;i++){
+		ct.drawImage(canvas,0,i*canvasHeight,canvasWidth,canvasHeight,0,0,canvasWidth,canvasHeight);
+		var imgData = c[0].toDataURL("image/jpeg",1.0);
+		if (i > 0) downloadPdf.addPage([canvasWidth*0.2645833333,canvasHeight*0.2645833333],"p");		// 1px = 0.2645833333 mm
+		downloadPdf.addImage(imgData,"JPEG",0,0);
+	}
+	downloadPdf.save("download.pdf");
 	/*ctx.rect(0,0,1000*1000,1000*1000);
 	ctx.fillStyle = "white";
 	ctx.fill();*/
-	downloadPdf.save("download.pdf");
 }
 
 function clearCanvas(canvasId){
 	var canvas = $(canvasId)[0];
 	var ctx = canvas.getContext("2d");
 	ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+document.addEventListener('webviewerloaded', function() {
+  PDFViewerApplicationOptions.set('printResolution', 300);
+});
+
+function addPage(){
+	canvasPages++;
+	$("#paste-main .canvas-wrapper").css({
+		height: canvasPages*canvasHeight,
+	});
+	$("#paste-main canvas")[0].height = canvasPages * canvasHeight;
+	var hr = $("<hr/>");
+	hr.css("top",(canvasPages-1)*canvasHeight);
+	hr.appendTo("#paste-main .canvas-wrapper");
+}
+
+function removeSnippet(){
+	$("#paste-main img.active").remove();
 }
 
 $(document).ready(init);

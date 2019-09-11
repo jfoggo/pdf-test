@@ -1,8 +1,9 @@
 body {
-	
+	overflow: hidden;
 }
 #wrapper {
 	min-width: 350px;
+	height: 100vh;
 }
 .navbar {
 	margin-bottom: 0px;
@@ -11,9 +12,6 @@ body {
 	height: 100%;
 	float: left;
 	margin-right: 5px;
-}
-#wrapper {
-	height: 100vh;
 }
 #side {
 	border-right: solid #e7e7e7 1px;
@@ -24,16 +22,28 @@ body {
 	transition: width 1s ease;
 	overflow-y: auto;
 }
+#main {
+	background: ghostwhite;
+}
 .canvas-wrapper {
 	position: absolute;
-	left: -250px;
+	left: -300px;
 	margin: auto;
 	margin-left: 50%;
-	width: 595px;
-	height: 842px;
-	background-color: ghostwhite;
-	border-left: solid black 1px;
+	width:600px;
+	height: 848px;
+	background-color: white;
+	border: solid black 1px;
 	border-right: solid black 1px;
+	transition: width 0.5s ease, height 0.5s ease, left 0.5s ease;
+}
+.canvas-wrapper hr {
+	position: absolute;
+	width: 100%;
+	height: 1px;
+	top: 0px;
+	left: 0px;
+	background: black;
 }
 canvas {
 	width: 100%;
@@ -56,6 +66,9 @@ hr {
 .panel-body {
 	max-height: 350px;
 	overflow: auto;
+}
+.Snippets-tools, .Files-tools {
+	margin-bottom: 1em;
 }
 #square {
 	display: none;

@@ -104,61 +104,88 @@
 												<span>Tools</span>
 											</h4>
 										</div>
-										<div id="collapse3" class="panel-collapse collapse" role="tabpanel">
-											<div class="panel-body text-center">
-												<div id="switch-page" class="Files-tools">
-													<span>Switch page:</span><br/>
-													<div class="btn-group">
-														<button id="last-page" class="btn btn-default">
-															<span class="glyphicon glyphicon-arrow-left"></span>
-														</button>
-														<button class="btn btn-default">
-															<span id="cur-page">0</span>/<span id="max-page">0</span>
-														</button>
-														<button id="next-page" class="btn btn-default">
-															<span class="glyphicon glyphicon-arrow-right"></span>
-														</button>
+										<div id="collapse3" class="panel-collapse collapse in" role="tabpanel">
+											<div class="panel-body text-center container-fluid">
+												<div class="row">
+													<div class="col-xs-12 col-md-6">
+														<div id="switch-page" class="Files-tools">
+															<span>Switch page:</span><br/>
+															<div class="btn-group">
+																<button id="last-page" class="btn btn-default">
+																	<span class="glyphicon glyphicon-arrow-left"></span>
+																</button>
+																<button class="btn btn-default">
+																	<span id="cur-page">0</span>/<span id="max-page">0</span>
+																</button>
+																<button id="next-page" class="btn btn-default">
+																	<span class="glyphicon glyphicon-arrow-right"></span>
+																</button>
+															</div>
+														</div>
+													</div>
+													<div class="col-xs-12 col-md-6">
+														<div id="cut-snippet" class="Files-tools">
+															<span>Select snippet:</span><br/>
+															<button class="btn btn-default" onclick="cut_snippet()">
+																<span class="glyphicon glyphicon-scissors"></span>
+																Cut
+															</button>
+														</div>
 													</div>
 												</div>
-												<div id="cut-snippet" class="Files-tools">
-													<br/>
-													<span>Select snippet:</span><br/>
-													<button class="btn btn-default" onclick="cut_snippet()">
-														<span class="glyphicon glyphicon-scissors"></span>
-														Cut
-													</button>
-												</div>
-												<div id="zoom" class="Snippets-tools hidden">
-													<br/>
-													<span>Resize snippet:</span><br/>
-													<!--
-													<div class="input-group" style="width:100%">
-														0<<label for="zoom-input">1.0</label><10
-														<input id="zoom-input" type="range" class="form-control" step="0.1" min="0" max="10" value="1" oninput="resizeActiveImage()">
+												<div class="row">
+													<div class="col-xs-12 col-md-6">
+														<div id="zoom" class="Snippets-tools hidden">
+															<span>Resize snippet:</span><br/>
+															<div class="btn-group">
+																<button class="btn btn-default" onclick="resizeActiveImage(-0.1)">
+																	<span class="glyphicon glyphicon-zoom-out"></span>
+																</button>
+																<button class="btn btn-default" onclick="resizeActiveImage(0.1)">
+																	<span class="glyphicon glyphicon-zoom-in"></span>
+																</button>
+															</div>
+														</div>
 													</div>
-													-->
-													<div class="btn-group">
-														<button class="btn btn-default" onclick="resizeActiveImage(-0.1)">
-															<span class="glyphicon glyphicon-zoom-out"></span>
-														</button>
-														<button class="btn btn-default" onclick="resizeActiveImage(0.1)">
-															<span class="glyphicon glyphicon-zoom-in"></span>
-														</button>
+													<div class="col-xs-12 col-md-6">
+														<div class="Snippets-tools hidden">
+															<span>Remove snippet:</span><br/>
+															<button class="btn btn-default" onclick="removeSnippet()">
+																<span class="glyphicon glyphicon-remove"></span> Remove
+															</button>
+														</div>
 													</div>
 												</div>
-												<div id="save" class="Snippets-tools hidden">
-													<br/>
-													<span>Save as PDF:</span><br/>
-													<button class="btn btn-default" onclick="saveAsPdf()">
-														<span class="glyphicon glyphicon-save"></span> Save
-													</button>
+												<div class="row">
+													<div class="col-xs-12 col-md-6">
+														<div class="Snippets-tools hidden">
+															<span>Add new page:</span><br/>
+															<button class="btn btn-default" onclick="addPage()">
+																<span class="glyphicon glyphicon-plus"></span> Add
+															</button>
+														</div>
+													</div>
+													<div class="col-xs-12 col-md-6">
+														<div id="save" class="Snippets-tools hidden">
+															<span>Clear PDF:</span><br/>
+															<button class="btn btn-default" type="button" onclick="clearCanvas('#paste-main canvas')">
+																<span class="glyphicon glyphicon-remove"></span> Clear
+															</button>
+														</div>
+													</div>
 												</div>
-												<div id="save" class="Snippets-tools hidden">
-													<br/>
-													<span>Clear PDF:</span><br/>
-													<button class="btn btn-default" type="button" onclick="clearCanvas('#paste-main canvas')">
-														<span class="glyphicon glyphicon-remove"></span> Clear
-													</button>
+												<div class="row">
+													<div class="col-xs-12 col-md-6">
+														<div id="save" class="Snippets-tools hidden">
+															<span>Save as PDF:</span><br/>
+															<button class="btn btn-default" onclick="saveAsPdf()">
+																<span class="glyphicon glyphicon-save"></span> Save
+															</button>
+														</div>
+													</div>
+													<div class="col-xs-12 col-md-6">
+														
+													</div>
 												</div>
 											</div>
 										</div>
