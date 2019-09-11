@@ -44,7 +44,7 @@ self.addEventListener('fetch', function(event) {
 		caches.match(event.request).then(
 			function(response) {
 				// Cache hit - return response
-				if (response) return response;
+				if (false && response) return response;
 				else {
 					fetch(event.request).then(
 						// Try to cache new requests directly 
