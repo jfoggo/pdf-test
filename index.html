@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+        <title>PDF Merger</title>
+        <link rel="manifest" href="manifest.json">
+        <link rel="icon" href="logo.png">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+		<script src="main.js"></script>
+    </head>
+    <body>
+		<div id="wrapper">
+			<nav id="header" class="navbar navbar-default navbar-fixed-top">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand">
+							<img src="logo.png">
+							<span>PDF Merger</span>
+						</a>
+					</div>
+					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+						<ul class="nav navbar-nav navbar-right">
+							<li class="active" name="Files"><a><span class="glyphicon glyphicon-scissors"></span> Cut</a></li>
+							<li name="Snippets"><a><span class="glyphicon glyphicon-duplicate"></span> Paste</a></li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+			<div id="content" class="container-fluid" style="padding-top:51px;height:100%;">
+				<div class="row" style="height:100%;">
+					<div id="side" class="col-xs-6 col-md-4" style="height:100%;padding-right:0;">
+						<div id="cut-side" class="container-fluid side">
+							<div class="row">
+								<div class="col-xs-8">
+									<h3>Menu</h3>
+								</div>
+								<div class="col-xs-4" style="text-align:right;padding-top:1em;">
+									<button class="btn btn-default side-btn">
+										<span class="glyphicon glyphicon-circle-arrow-left"></span>
+									</button>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12">
+									<!-- TODO: ACCORDION FOR: Files, Snippets & Tools -->
+									<div id="cut-accordion" class="panel-group" role="tablist" aria-multiselectable="true">
+										<div class="panel panel-default">
+											<div id="heading1" class="panel-heading" role="tab">
+												<h4 class="panel-title"  role="button" data-toggle="collapse" data-parent="#cut-accordion" href="#collapse1" aria-expanded="true" aria-controls="collapse-1">
+													<span>Files</span>
+												</h4>
+											</div>
+											<div id="collapse1" class="panel-collapse collapse in" role="tabpanel">
+												<div class="panel-body">
+													<div>
+														<span>
+															Add new file:
+															<button class="btn btn-default" onclick="$('input[type=\'file\']').click()">
+																<span class="glyphicon glyphicon-plus"></span>
+															</button>
+															<input type="file" accept="image/*,application/pdf" multiple class="hidden">
+														</span>
+													</div>
+													<div id="cut-files">
+														<hr/>
+														<span class="glyphicon glyphicon-remove"></span> No Files
+													</div>
+												</div>
+											</div>
+										</div>
+										<div class="panel panel-default">
+											<div id="heading2" class="panel-heading" role="tab">
+												<h4 class="panel-title"  role="button" data-toggle="collapse" data-parent="#cut-accordion" href="#collapse2" aria-expanded="true" aria-controls="collapse-2">
+													<span>Snippets</span>
+												</h4>
+											</div>
+											<div id="collapse2" class="panel-collapse collapse" role="tabpanel">
+												<div class="panel-body">
+													<div id="merge-snippets">
+														<span class="glyphicon glyphicon-remove"></span> No Snippets
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<hr/>
+									<div id="tools-panel" class="panel panel-default">
+										<div id="heading3" class="panel-heading" role="tab">
+											<h4 class="panel-title"  role="button" data-toggle="collapse" data-parent="#cutaccordion" href="#collapse3" aria-expanded="true" aria-controls="collapse-3">
+												<span>Tools</span>
+											</h4>
+										</div>
+										<div id="collapse3" class="panel-collapse collapse" role="tabpanel">
+											<div class="panel-body text-center">
+												<div id="switch-page" class="Files-tools">
+													<span>Switch page:</span><br/>
+													<div class="btn-group">
+														<button id="last-page" class="btn btn-default">
+															<span class="glyphicon glyphicon-arrow-left"></span>
+														</button>
+														<button class="btn btn-default">
+															<span id="cur-page">0</span>/<span id="max-page">0</span>
+														</button>
+														<button id="next-page" class="btn btn-default">
+															<span class="glyphicon glyphicon-arrow-right"></span>
+														</button>
+													</div>
+												</div>
+												<div id="cut-snippet" class="Files-tools">
+													<br/>
+													<span>Select snippet:</span><br/>
+													<button class="btn btn-default" onclick="cut_snippet()">
+														<span class="glyphicon glyphicon-scissors"></span>
+														Cut
+													</button>
+												</div>
+												<div id="zoom" class="Snippets-tools hidden">
+													<br/>
+													<span>Resize snippet:</span><br/>
+													<!--
+													<div class="input-group" style="width:100%">
+														0<<label for="zoom-input">1.0</label><10
+														<input id="zoom-input" type="range" class="form-control" step="0.1" min="0" max="10" value="1" oninput="resizeActiveImage()">
+													</div>
+													-->
+													<div class="btn-group">
+														<button class="btn btn-default" onclick="resizeActiveImage(-0.1)">
+															<span class="glyphicon glyphicon-zoom-out"></span>
+														</button>
+														<button class="btn btn-default" onclick="resizeActiveImage(0.1)">
+															<span class="glyphicon glyphicon-zoom-in"></span>
+														</button>
+													</div>
+												</div>
+												<div id="save" class="Snippets-tools hidden">
+													<br/>
+													<span>Save as PDF:</span><br/>
+													<button class="btn btn-default" onclick="saveAsPdf()">
+														<span class="glyphicon glyphicon-save"></span> Save
+													</button>
+												</div>
+												<div id="save" class="Snippets-tools hidden">
+													<br/>
+													<span>Clear PDF:</span><br/>
+													<button class="btn btn-default" type="button" onclick="clearCanvas('#paste-main canvas')">
+														<span class="glyphicon glyphicon-remove"></span> Clear
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="main" class="col-xs-6 col-md-8" style="height:100%;padding-left:0;">
+						<div id="cut-main" class="container-fluid main text-center" style="height:100%;padding-left:0px;">
+							<div class="canvas-wrapper">
+								<canvas></canvas>
+								<div id="square"></div>
+							</div>
+						</div>
+						<div id="paste-main" class="container-fluid main hidden">
+							<div class="canvas-wrapper">
+								<canvas></canvas>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			if ('serviceWorker' in navigator) {
+				console.log("[*] Register serviceWorker ...");
+				navigator.serviceWorker.register('/pdf2/sw.js').then(function(registration) {
+					// Registration was successful
+					console.log('[*] ServiceWorker registration successful with scope: ', registration.scope);
+				}, function(err) {
+					// registration failed :(
+					console.log('[*] ServiceWorker registration failed: ', err);
+				});
+			}
+			else console.log("[*] ServiceWorker not supported by your browser!");
+		</script>
+    </body>
+</html>
