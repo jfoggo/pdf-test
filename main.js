@@ -238,6 +238,7 @@ function addNewFile(event){
 					}).catch(function(err){
 						console.log(err);
 						console.log("[ERROR] Could not convert PDF to Image Src ...");
+                                                alert("Could not render PDF ...");
 					});
                 });
             };
@@ -279,10 +280,12 @@ function pdfToImgSrc(pdf,pageNr){
 				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
+                                alert("Could not render PDF ... 2");
 			});
         }).catch(function(...args){
 			reject(...args);
 			canvas.remove();
+                        alert("Could not render PDF ... 3");
 		});
     });
 }
@@ -418,10 +421,12 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
+                                alert("Could not render PDF ... 4");
 			});
 		}).catch(function(...args){
 			reject(...args);
 			canvas.remove();
+                        alert("Could not render PDF ... 5");
 		});
 	});
 }
