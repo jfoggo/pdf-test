@@ -18,9 +18,9 @@ var urlsToCache = [
 	'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2',
 	'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf',
 	// PDFjs RESOURCE
-	'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js'
+	'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js',
 	// jsPDF RESOURCE
-	'https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js',
+	'https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js'
 ];
 
 // Install Event
