@@ -32,9 +32,6 @@ self.addEventListener('install', function(event) {
 			function(cache) {
 				console.log('[SW] Opened cache: ',cache);
 				return cache.addAll(urlsToCache);
-			},
-			function (...args){
-				console.log("[SW] Something failed (install): ",args);
 			}
 		)
 	);
@@ -69,9 +66,6 @@ self.addEventListener('fetch', function(event) {
 
 					);
 				}
-			},
-			function (...args){
-				console.log("[SW] Something failed (fetch): ",args);
 			}
 		)
 	);
