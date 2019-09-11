@@ -4,7 +4,8 @@
 	"description": "Simple PDF snipping tool (online+offline).",
 	"orientation": "landscape", 
 	"display": "standalone", 
-	"background_color": "black", 
+	"background_color": "black",
+	"theme_color": "white",
 	"icons": [
 		{
 			"src": "/pdf-test/logo.png",
