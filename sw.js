@@ -37,6 +37,7 @@ self.addEventListener('install', function(event) {
 	);
 });
 
+/*
 // Fetch Event
 self.addEventListener('fetch', function(event) {
 	console.log("[SW] fetch event: ",event);
@@ -44,7 +45,7 @@ self.addEventListener('fetch', function(event) {
 		caches.match(event.request).then(
 			function(response) {
 				// Cache hit - return response
-				if (false && response) return response;
+				if (response) return response;
 				else {
 					fetch(event.request).then(
 						// Try to cache new requests directly 
@@ -71,3 +72,4 @@ self.addEventListener('fetch', function(event) {
 	);
 });
 
+*/
