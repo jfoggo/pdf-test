@@ -1,12 +1,12 @@
 var CACHE_NAME = 'pdf-merger-cache';
 var urlsToCache = [
-	'/pdf2/',
-	'/pdf2/index.html',
-	'/pdf2/logo.png',
-	'/pdf2/main.css',
-	'/pdf2/main.js',
-	'/pdf2/manifest.json',
-	'/pdf2/sw.js',
+	'/pdf-test/',
+	'/pdf-test/index.html',
+	'/pdf-test/logo.png',
+	'/pdf-test/main.css',
+	'/pdf-test/main.js',
+	'/pdf-test/manifest.json',
+	'/pdf-test/sw.js',
 	// TODO: include Bootstrap, Jquery and other libraries as scripts
 ];
 
