@@ -229,6 +229,7 @@ function toggleSide(event){
 
 function addNewFile(event){
 	var input = $("input[type='file']")[0];
+	console.log("ADDING NEW FILE");
     for (var i=0;i<input.files.length;i++){
         let file = input.files[i];
 		console.log("[*] Try adding file: "+file.name);
