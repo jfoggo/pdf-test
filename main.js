@@ -249,9 +249,14 @@ function addNewFile(event){
 						currentlyRendering = false;
 						console.log(err);
 						console.log("[ERROR] Could not convert PDF to Image Src ...");
-                        alert("Could not render PDF ... STEP 1");
+                        alert("Could not render PDF ... STEP 0");
 					});
-                });
+                }).catch(function(err){
+					currentlyRendering = false;
+					console.log(err);
+					console.log("[ERROR] Could not convert PDF to Image Src ...");
+					alert("Could not render PDF ... STEP 1");
+				});
             };
             fileReader.readAsArrayBuffer(file);
         }
