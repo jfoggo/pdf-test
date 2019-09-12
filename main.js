@@ -235,6 +235,7 @@ function addNewFile(event){
 		console.log("[*] Try adding file: "+file.name);
         let fileReader = new FileReader();
         if (file.name.endsWith(".pdf")){    // Handle PDF's
+			console.log("Handling PDF file ...");
             fileReader.onload = function(){
                 let typedarray = new Uint8Array(this.result);
 				currentlyRendering = true;
@@ -255,6 +256,7 @@ function addNewFile(event){
             fileReader.readAsArrayBuffer(file);
         }
         else {                                // Handle Images
+			console.log("Handling IMAGE file ...");
             fileReader.onload = function(event){
                 var mf = new MediaFile(idCounter++,file.name,event.target.result);
 				files.push(mf);
