@@ -240,6 +240,7 @@ function addNewFile(event){
 				console.log("FileReader loaded ...");
                 let typedarray = new Uint8Array(this.result);
 				currentlyRendering = true;
+				console.log("Converting pdf to array ...");
                 pdfjsLib.getDocument(typedarray).then(function(pdf){
 					console.log("PDFjs converted array to pdf ...");
                     pdfToImgSrc(pdf).then(function(imgSrc){
