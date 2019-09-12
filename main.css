@@ -17,6 +17,7 @@ body {
 	border-right: solid #e7e7e7 1px;
 	background-color: #f8f8f8;
 	color: #555;
+	min-width: 75px;
 }
 #side, #main {
 	transition: width 1s ease;
@@ -59,8 +60,12 @@ hr {
 	margin: auto;
 	transition: width 0.5s ease, height 0.5s ease;
 }
+.canvas-wrapper img {
+	border-color: transparent;
+}
 .preview-img:hover {
 	border-style: dashed;
+	border-color: black;
 	cursor: pointer;
 }
 .panel-body {

@@ -157,8 +157,6 @@ function cut_snippet(){
 	canvas[0].height = data.height;
 	
 	ctx = canvas[0].getContext("2d");
-	
-	// TODO: calculate square position and canvas dimension
 	ctx.putImageData(data,0,0);
 	//ctx.drawImage($("#cut-main canvas")[0],parseFloat(s.css("left"))*cut_scale.x,parseFloat(s.css("top"))*cut_scale.y,parseFloat(s.css("width"))*cut_scale.x,parseFloat(s.css("height"))*cut_scale.y,0,0,parseFloat(s.css("width")),parseFloat(s.css("height")));
 	
@@ -172,8 +170,8 @@ function cut_snippet(){
 	appendImage("#merge-snippets",imgSrc,"",mf);
 	
 	canvas.remove();
-	$("li[name='Snippets']").click();
-	//$("#square").css("display","none");
+	//$("li[name='Snippets']").click();
+	$("#square").css("display","none");
 }
 
 function getCoordinates(event){
@@ -206,7 +204,7 @@ function clickPanel(event){
 	$(txt == "Files" ? "#cut-main" : "#paste-main").removeClass("hidden");
 	$(".Files-tools, .Snippets-tools").addClass("hidden");
 	$("."+txt+"-tools").removeClass("hidden");
-	//$("#square").css("display","none");
+	$("#square").css("display","none");
 }
 
 function clickNavButton(event){
@@ -221,8 +219,8 @@ function toggleSide(event){
 	btn.children("span").toggleClass("glyphicon-circle-arrow-left glyphicon-circle-arrow-right");
 	var side,main;
 	$("#side h3, #side .col-xs-8, #side .panel-group, #side .panel-default, #side hr").toggleClass("hidden");
-	$("#side").toggleClass("col-xs-1 col-md-1 col-xs-6 col-md-4");
-	$("#main").toggleClass("col-xs-6 col-md-8 col-xs-11 col-md-11");
+	$("#side").toggleClass("col-xs-2 col-md-1 col-xs-6 col-md-4");
+	$("#main").toggleClass("col-xs-6 col-md-8 col-xs-10 col-md-10");
 	var div = btn.parent();
 	div.css("text-align",div.css("text-align")=="left"?"right":"left");
 }
@@ -389,7 +387,6 @@ function drawImageOnCanvas(img,canvas){
 	console.log("I: ",iWidth," ",iHeight);
 	console.log("C: ",cWidth," ",cHeight);
 
-	//canvas.getContext("2d").drawImage(img,0,0);
 	console.log("before: ",iWidth,iHeight);
 	var scale = 1, scale2 = 1;
 	if (iWidth > canvasWidth2 || iHeight > canvasHeight2){
@@ -399,9 +396,6 @@ function drawImageOnCanvas(img,canvas){
 		}
 		else if (iWidth > canvasWidth2) scale = canvasWidth2/iWidth, scale2=iWidth/canvasWidth2;
 		else scale = canvasHeight2/iHeight, scale2=iHeight/canvasHeight2;
-		
-		//iWidth *= scale;
-		//iHeight *= scale;
 	}
 	console.log("scale: "+scale);
 	console.log("scale2: "+scale2);
@@ -429,9 +423,6 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 				}
 				else if (viewport.width > canvasWidth2) scale = canvasWidth2/viewport.width, scale2=viewport.width/canvasWidth2;
 				else scale = canvasHeight2/viewport.height, scale2=viewport.height/canvasHeight2;
-				
-				//viewport.width *= scale;
-				//viewport.height *= scale;
 			}
 			console.log("JEEEEEETZT: ",scale,scale2);
 			$(canvas).closest(".canvas-wrapper").css({
@@ -529,6 +520,7 @@ function saveAsPdf(){
 		if (i > 0) downloadPdf.addPage([canvasWidth*0.2645833333,canvasHeight*0.2645833333],"p");		// 1px = 0.2645833333 mm
 		downloadPdf.addImage(imgData,"JPEG",0,0);
 	}
+	c.remove();
 	downloadPdf.save("download.pdf");
 	/*ctx.rect(0,0,1000*1000,1000*1000);
 	ctx.fillStyle = "white";
