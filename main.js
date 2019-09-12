@@ -231,6 +231,7 @@ function addNewFile(event){
 	var input = $("input[type='file']")[0];
     for (var i=0;i<input.files.length;i++){
         let file = input.files[i];
+		console.log("[*] Try adding file: "+file.name);
         let fileReader = new FileReader();
         if (file.name.endsWith(".pdf")){    // Handle PDF's
             fileReader.onload = function(){
