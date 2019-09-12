@@ -525,11 +525,11 @@ document.addEventListener('webviewerloaded', function() {
 function addPage(){
 	canvasPages++;
 	$("#paste-main .canvas-wrapper").css({
-		height: canvasPages*canvasHeight,
+		height: canvasPages*canvasHeight2,
 	});
 	$("#paste-main canvas")[0].height = canvasPages * canvasHeight;
 	var hr = $("<hr/>");
-	hr.css("top",(canvasPages-1)*canvasHeight);
+	hr.css("top",(canvasPages-1)*canvasHeight2);
 	hr.appendTo("#paste-main .canvas-wrapper");
 }
 
