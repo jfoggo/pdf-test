@@ -237,10 +237,13 @@ function addNewFile(event){
         if (file.name.endsWith(".pdf")){    // Handle PDF's
 			console.log("Handling PDF file ...");
             fileReader.onload = function(){
+				console.log("FileReader loaded ...");
                 let typedarray = new Uint8Array(this.result);
 				currentlyRendering = true;
                 pdfjsLib.getDocument(typedarray).then(function(pdf){
+					console.log("PDFjs converted array to pdf ...");
                     pdfToImgSrc(pdf).then(function(imgSrc){
+						console.log("PDF converted to IMG src ...");
 						currentlyRendering = false;
 						var mf = new MediaFile(idCounter++,file.name,imgSrc,pdf);
 						files.push(mf);
