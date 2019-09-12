@@ -258,6 +258,11 @@ function addNewFile(event){
 					alert("Could not render PDF ... STEP 1");
 				});
             };
+			fileReader.onerror = function(err){
+				console.log(err);
+				console.log("[ERROR] Could not convert PDF to Image Src ...");
+				alert("Could not render PDF ... STEP 1B");
+			}
             fileReader.readAsArrayBuffer(file);
         }
         else {                                // Handle Images
@@ -267,6 +272,11 @@ function addNewFile(event){
 				files.push(mf);
                 appendImage("#cut-files",event.target.result,file.name,mf);
             }
+			fileReader.onerror = function(err){
+				console.log(err);
+				console.log("[ERROR] Could not convert PDF to Image Src ...");
+				alert("Could not render PDF ... STEP 1C");
+			}
             fileReader.readAsDataURL(file);
         }
     }
