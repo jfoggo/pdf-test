@@ -290,7 +290,7 @@ function pdfToImgSrc(pdf,pageNr){
         var canvas = $("<canvas class='hidden'></canvas>");
         canvas.appendTo("body");
         pdf.getPage(pageNr).then(function(page){
-            var viewport = page.getViewport(2);
+            var viewport = page.getViewport(3);
             canvas[0].width = viewport.width;
             canvas[0].height = viewport.height;
 			$("button").prop("disabled",true);
@@ -414,7 +414,7 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 	return new Promise(function(resolve,reject){
 		pageNr = parseInt(pageNr) ? pageNr : 1;
 		pdf.getPage(pageNr).then(function(page){
-			var viewport = page.getViewport(2);
+			var viewport = page.getViewport(3);
 			var scale = 1, scale2 = 1;
 			if (viewport.width > canvasWidth2 || viewport.height > canvasHeight2){
 				if (viewport.width > canvasWidth2 && viewport.height > canvasHeight2) {
