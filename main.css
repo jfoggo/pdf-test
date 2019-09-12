@@ -17,7 +17,6 @@ body {
 	border-right: solid #e7e7e7 1px;
 	background-color: #f8f8f8;
 	color: #555;
-	min-width: 75px;
 }
 #side, #main {
 	transition: width 1s ease;
