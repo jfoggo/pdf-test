@@ -81,6 +81,7 @@ hr {
 }
 img.active {
 	border-color: red;
+	z-index: 9999 !important;
 }
 .hover-red:hover {
 	color: red !important;

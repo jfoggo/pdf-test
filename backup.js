@@ -1,7 +1,6 @@
 class MediaFile {
-    constructor(id,name,src,pdf){
-        this.id = "mf"+id;
-		this.name = name;
+    constructor(id,src,pdf){
+        this.id = id;
         this.src = src;
 		this.pdf = pdf;
     }
@@ -14,9 +13,6 @@ var files = [];
 var snippets = [];
 var cut_scale = { x: 1, y: 1};
 var canvasPages = 1;
-var canvasWidth,canvasHeight;
-var idCounter = 0;
-var currentlyRendering = false;
 
 function init(){
 	$(".side-btn").click(toggleSide);
@@ -39,33 +35,27 @@ function init(){
 		cut_snippet();
 	});
 	
-	$("#paste-main .canvas-wrapper").droppable({
+	$(".canvas-wrapper").droppable({
 		drop: function(event,ui){
 			var img = $(ui.draggable);
 			if (!$(ui.draggable).hasClass("already-dropped")){
 				img = $(ui.draggable).clone();
 				var offset = $(this).offset();
+				var s = snippets.filter(e=>e.src == img.attr("src"));
+				console.log("FILTERED: ",s);
 				img.css({
 					position: "absolute",
 					left: parseFloat($(ui.helper).css("left"))-offset.left,
 					top: parseFloat($(ui.helper).css("top"))-offset.top,
 					zIndex: $(ui.helper).css("z-index"),
+					maxWidth: "100%",
 					maxHeight: "100%",
-					maxWidth: "100%"
+					width: s.width,
+					height: s.height,
 				});
-				var mf_id = img.attr("id");
-				var mf = files.concat(snippets).filter(e=>e.id == mf_id)[0];
 				img.draggable({
 					revert: "invalid",
-					stack: "img",
-					start: function(event,ui){
-						$(ui.helper).css({
-							width: mf.width,
-							height: mf.height
-						});
-						$(".canvas-wrapper .active").removeClass("active");
-						$(ui.helper).addClass("active");
-					}
+					stack: "img"
 				});
 			}
 			
@@ -86,23 +76,11 @@ function init(){
 	});
 	
 	$(document).keydown(function(event){
-		if (!currentlyRendering && $("nav li[name='Files']").hasClass("active")){
+		if ($("nav li[name='Files']").hasClass("active")){
 			if (event.keyCode == 37) $("#last-page").click();
 			else if (event.keyCode == 39) $("#next-page").click();
 		}
 	});
-	
-	canvasHeight2 = parseFloat($("canvas:visible").css("height"));
-	canvasWidth2 = parseFloat($("canvas:visible").css("width"));
-	canvasWidth = 2480;
-	canvasHeight = 3508;
-	/*canvasWidth = canvasWidth2*4;
-	canvasHeight = canvasHeight2*4;*/
-	var c = $("#paste-main canvas")[0];
-	c.width = canvasWidth;
-	c.height = canvasHeight;
-	clearCanvas("#paste-main canvas");
-	clearCanvas("#cut-main canvas");
 }
 
 function canvasClickStart(event){
@@ -131,9 +109,7 @@ function canvasClickStart(event){
 			width: width,
 			height: height
 		});
-        event.preventDefault();
 	});
-    event.preventDefault();
 }
 
 function canvasClickEnd(event){
@@ -162,9 +138,9 @@ function cut_snippet(){
 	ctx.putImageData(data,0,0);
 	//ctx.drawImage($("#cut-main canvas")[0],parseFloat(s.css("left"))*cut_scale.x,parseFloat(s.css("top"))*cut_scale.y,parseFloat(s.css("width"))*cut_scale.x,parseFloat(s.css("height"))*cut_scale.y,0,0,parseFloat(s.css("width")),parseFloat(s.css("height")));
 	
-	var imgSrc = canvas[0].toDataURL("image/png",1.0);
+	var imgSrc = canvas[0].toDataURL("image/png");
 	
-	var mf = new MediaFile(idCounter++,"Snippet",imgSrc);
+	var mf = new MediaFile("Snippet",imgSrc);
 	mf.width = parseFloat(s.css("width"));
 	mf.height = parseFloat(s.css("height"));
 	
@@ -173,7 +149,7 @@ function cut_snippet(){
 	
 	canvas.remove();
 	$("li[name='Snippets']").click();
-	//$("#square").css("display","none");
+	$("#square").css("display","none");
 }
 
 function getCoordinates(event){
@@ -206,7 +182,6 @@ function clickPanel(event){
 	$(txt == "Files" ? "#cut-main" : "#paste-main").removeClass("hidden");
 	$(".Files-tools, .Snippets-tools").addClass("hidden");
 	$("."+txt+"-tools").removeClass("hidden");
-	//$("#square").css("display","none");
 }
 
 function clickNavButton(event){
@@ -235,18 +210,14 @@ function addNewFile(event){
         if (file.name.endsWith(".pdf")){    // Handle PDF's
             fileReader.onload = function(){
                 let typedarray = new Uint8Array(this.result);
-				currentlyRendering = true;
                 pdfjsLib.getDocument(typedarray).then(function(pdf){
                     pdfToImgSrc(pdf).then(function(imgSrc){
-						currentlyRendering = false;
-						var mf = new MediaFile(idCounter++,file.name,imgSrc,pdf);
+						var mf = new MediaFile(file.name,imgSrc,pdf);
 						files.push(mf);
 						appendImage("#cut-files",imgSrc,file.name,mf);
 					}).catch(function(err){
-						currentlyRendering = false;
 						console.log(err);
 						console.log("[ERROR] Could not convert PDF to Image Src ...");
-                        alert("Could not render PDF ... STEP 1");
 					});
                 });
             };
@@ -254,7 +225,7 @@ function addNewFile(event){
         }
         else {                                // Handle Images
             fileReader.onload = function(event){
-                var mf = new MediaFile(idCounter++,file.name,event.target.result);
+                var mf = new MediaFile(file.name,event.target.result);
 				files.push(mf);
                 appendImage("#cut-files",event.target.result,file.name,mf);
             }
@@ -269,46 +240,35 @@ function pdfToImgSrc(pdf,pageNr){
         var canvas = $("<canvas class='hidden'></canvas>");
         canvas.appendTo("body");
         pdf.getPage(pageNr).then(function(page){
-            var viewport = page.getViewport(2);
+            var viewport = page.getViewport(2.0);
             canvas[0].width = viewport.width;
             canvas[0].height = viewport.height;
-			$("button").prop("disabled",true);
-			currentlyRendering = true;
             var renderTask = page.render({canvasContext:canvas[0].getContext("2d"), viewport:viewport});
             renderTask.promise.then(function(){
-				$("button").prop("disabled",false);
-				currentlyRendering = false;
                 // save canvas as image
                 var imgData = canvas[0].toDataURL("image/jpeg", 1.0);
                 // Append image to side list
                 resolve(imgData);
 				canvas.remove();
             }).catch(function(...args){
-				$("button").prop("disabled",false);
-				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
-                alert("Could not render PDF ... STEP 2");
 			});
         }).catch(function(...args){
 			reject(...args);
 			canvas.remove();
-            alert("Could not render PDF ... STEP 3");
 		});
     });
 }
 
 function appendImage(listId, imgSrc, fileName, mf){
     var list = $(listId);
-    var img = $("<div class='text-center' name='"+fileName+"'><hr/><span>"+fileName+"</span> <span class='glyphicon glyphicon-remove-circle hover-red' style='color:grey' onclick='removeImage(this)'></span><br/><img id="+mf.id+" style='width:"+mf.width+";height:"+mf.height+";' src='"+imgSrc+"' class='preview-img'></div>");
-    img.find("img").css({
-		width: mf.width,
-		height: mf.height
-	});
-	img.click(function(event){
+    var img = $("<div class='text-center' name='"+fileName+"'><hr/><span>"+fileName+"</span> <span class='glyphicon glyphicon-remove-circle hover-red' style='color:grey' onclick='removeImage(this)'></span><br/><img style='width:"+mf.width+";height:"+mf.height+";' src='"+imgSrc+"' class='preview-img'></div>");
+    img.click(function(event){
 		if (listId == "#cut-files"){
 			var imgTag = $(event.target).find("img");
 			if (imgTag.length == 0) imgTag = $(event.target).closest("img");
+			
 			if (mf.pdf) {
 				drawPdfOnCanvas(mf.pdf,$("#cut-main canvas"),1);
 				currentSelectData = mf;
@@ -325,24 +285,12 @@ function appendImage(listId, imgSrc, fileName, mf){
 		}
 	});
 	if (listId == "#merge-snippets") {
-		var mf_id = img.find("img").attr("id");
-		var mf = files.concat(snippets).filter(e=>e.id == mf_id)[0];
 		img.find("img").draggable({
 			appendTo: "#content",
 			containment: "window",
 			helper: "clone",
 			revert: "invalid",
-			stack: ".canvas-wrapper img",
-			start: function(event,ui){
-				$(ui.helper).css({
-					width: mf.width,
-					height: mf.height,
-					maxWidth: "100%",
-					maxHeight: "100%",
-				});
-				$(".canvas-wrapper img.active").removeClass("active");
-				$(ui.helper).addClass("active");
-			}
+			stack: "img"
 		});
 	}
     if (list.find("img").length == 0) list.empty();
@@ -351,11 +299,7 @@ function appendImage(listId, imgSrc, fileName, mf){
 
 function removeImage(elem){
 	console.log("REMOVE: ",elem);
-	var div = $(elem).closest("div");
-	var id = div.find("img").attr("id");
-	files = files.filter(e=>e.id != id);
-	snipptets = snippets.filter(e=>e.id != id);
-	div.remove();
+	$(elem).closest("div").remove();
 }
 
 function drawImageOnCanvas(img,canvas){
@@ -367,80 +311,47 @@ function drawImageOnCanvas(img,canvas){
 	console.log("C: ",cWidth," ",cHeight);
 
 	//canvas.getContext("2d").drawImage(img,0,0);
-	console.log("before: ",iWidth,iHeight);
-	var scale = 1, scale2 = 1;
-	if (iWidth > canvasWidth2 || iHeight > canvasHeight2){
-		if (iWidth > canvasWidth2 && iHeight > canvasHeight2) {
-			if (iWidth > iHeight) scale = canvasWidth2/iWidth, scale2 = iWidth/canvasWidth2;
-			else scale = canvasHeight2/iHeight, scale2=iHeight/canvasHeight2;
-		}
-		else if (iWidth > canvasWidth2) scale = canvasWidth2/iWidth, scale2=iWidth/canvasWidth2;
-		else scale = canvasHeight2/iHeight, scale2=iHeight/canvasHeight2;
-		
-		//iWidth *= scale;
-		//iHeight *= scale;
+	
+	if (iWidth < iHeight){	// HOCHFORMAT
+		canvas.width = iWidth;
+		canvas.height = iHeight;
+		canvas.getContext("2d").drawImage(img,0,0);
 	}
-	console.log("scale: "+scale);
-	console.log("scale2: "+scale2);
-	console.log("after: ",iWidth,iHeight);
-	$(canvas).closest(".canvas-wrapper").outerWidth(iWidth*scale);
-	$(canvas).closest(".canvas-wrapper").outerHeight(iHeight*scale);
-	$(canvas).closest(".canvas-wrapper").css("left",-iWidth/2*scale);
-	canvas.width = iWidth;
-	canvas.height = iHeight;
-	canvas.getContext("2d").drawImage(img,0,0,iWidth,iHeight);
-	cut_scale.x = scale2;
-	cut_scale.y = scale2;
+	else {					// QUERFORMAT
+		canvas.width = iWidth;
+		if (iHeight < cHeight) {
+			canvas.height = cHeight;
+			canvas.getContext("2d").drawImage(img,0,(cHeight-iHeight)/2);
+		}
+		else {
+			canvas.height = iWidth;
+			canvas.getContext("2d").drawImage(img,0,0);
+		}
+	}
+	cut_scale.x = canvas.width/$(canvas).outerWidth();
+	cut_scale.y = canvas.height/$(canvas).outerHeight();
 }
 
 function drawPdfOnCanvas(pdf,canvas,pageNr){
 	return new Promise(function(resolve,reject){
 		pageNr = parseInt(pageNr) ? pageNr : 1;
 		pdf.getPage(pageNr).then(function(page){
-			var viewport = page.getViewport(2);
-			var scale = 1, scale2 = 1;
-			if (viewport.width > canvasWidth2 || viewport.height > canvasHeight2){
-				if (viewport.width > canvasWidth2 && viewport.height > canvasHeight2) {
-					if (viewport.width > viewport.height) scale = canvasWidth2/viewport.width, scale2 = viewport.width/canvasWidth2;
-					else scale = canvasHeight2/viewport.height, scale2=viewport.height/canvasHeight2;
-				}
-				else if (viewport.width > canvasWidth2) scale = canvasWidth2/viewport.width, scale2=viewport.width/canvasWidth2;
-				else scale = canvasHeight2/viewport.height, scale2=viewport.height/canvasHeight2;
-				
-				//viewport.width *= scale;
-				//viewport.height *= scale;
-			}
-			console.log("JEEEEEETZT: ",scale,scale2);
-			$(canvas).closest(".canvas-wrapper").css({
-				width: viewport.width*scale,
-				height: viewport.height*scale,
-				left: -viewport.width*scale/2
-			});
-			
+			var viewport = page.getViewport(2.0);
 			canvas[0].width = viewport.width;
 			canvas[0].height = viewport.height;
-			console.log("viewport: ",viewport);
-			cut_scale.x = scale2;
-			cut_scale.y = scale2;
-			$("button").prop("disabled",true);
-			currentlyRendering = true;
+			cut_scale.x = canvas[0].width/$(canvas).outerWidth();
+			cut_scale.y = canvas[0].height/$(canvas).outerHeight();
 			var renderTask = page.render({canvasContext:canvas[0].getContext("2d"), viewport:viewport});
 			renderTask.promise.then(function(){
-				$("button").prop("disabled",false);
-				currentlyRendering = false;
 				if (canvas.closest("#cut-main").length > 0) $("#cur-page").text(pageNr);
 				resolve();
 			}).catch(function(...args){
-				$("button").prop("disabled",false);
-				currentlyRendering = false;
 				reject(...args);
 				canvas.remove();
-                alert("Could not render PDF ... STEP 4");
 			});
 		}).catch(function(...args){
 			reject(...args);
 			canvas.remove();
-            alert("Could not render PDF ... STEP 5");
 		});
 	});
 }
@@ -471,70 +382,34 @@ function saveAsPdf(){
 		return parseInt($(a).css("z-index")) > parseInt($(b).css("z-index"));
 	});
 	var canvas = $("#paste-main canvas")[0];
+	canvas.width = 595;
+	canvas.height = 842;
 	var ctx = canvas.getContext("2d");
-	// Draw white background
-	ctx.rect(0,0,canvasWidth,canvasPages*canvasHeight);
+	ctx.rect(0,0,1000*1000,1000*1000);
 	ctx.fillStyle = "white";
 	ctx.fill();
-	var wrapper = $(canvas).closest(".canvas-wrapper");
-	var scaled = {
-		x: canvas.width/wrapper.outerWidth(),
-		y: canvas.height/wrapper.outerHeight()
-	}
 	for (var i=0;i<imgs.length;i++){
 		console.log(imgs.eq(i));
 		var x = parseFloat(imgs.eq(i).css("left"));
 		var y = parseFloat(imgs.eq(i).css("top"));
 		var w = parseFloat(imgs.eq(i).outerWidth());
 		var h = parseFloat(imgs.eq(i).outerHeight());
-		ctx.drawImage(imgs[i],x*scaled.x,y*scaled.y,w*scaled.x,h*scaled.y);
+		ctx.drawImage(imgs[i],x,y,w,h);
+		//imgs.eq(i).remove();
 	}
-	
-	var downloadPdf = new jsPDF("p","mm",[canvasWidth*0.2645833333,canvasHeight*0.2645833333]);	// 1px = 0.2645833333 mm
-	var c = $("<canvas class='hidden'></canvas>");
-	c.appendTo("body");
-	c.css({
-		width: canvasWidth,
-		height: canvasHeight
-	});
-	c[0].width = canvasWidth;
-	c[0].height = canvasHeight;
-	var ct = c[0].getContext("2d");
-	for (var i=0;i<canvasPages;i++){
-		ct.drawImage(canvas,0,i*canvasHeight,canvasWidth,canvasHeight,0,0,canvasWidth,canvasHeight);
-		var imgData = c[0].toDataURL("image/jpeg",1.0);
-		if (i > 0) downloadPdf.addPage([canvasWidth*0.2645833333,canvasHeight*0.2645833333],"p");		// 1px = 0.2645833333 mm
-		downloadPdf.addImage(imgData,"JPEG",0,0);
-	}
-	downloadPdf.save("download.pdf");
+	var imgData = canvas.toDataURL("image/jpeg");
+	var downloadPdf = new jsPDF();
+	downloadPdf.addImage(imgData,"JPEG",0,0);
 	/*ctx.rect(0,0,1000*1000,1000*1000);
 	ctx.fillStyle = "white";
 	ctx.fill();*/
+	downloadPdf.save("download.pdf");
 }
 
 function clearCanvas(canvasId){
 	var canvas = $(canvasId)[0];
 	var ctx = canvas.getContext("2d");
 	ctx.clearRect(0,0,canvas.width,canvas.height);
-}
-
-document.addEventListener('webviewerloaded', function() {
-  PDFViewerApplicationOptions.set('printResolution', 300);
-});
-
-function addPage(){
-	canvasPages++;
-	$("#paste-main .canvas-wrapper").css({
-		height: canvasPages*canvasHeight,
-	});
-	$("#paste-main canvas")[0].height = canvasPages * canvasHeight;
-	var hr = $("<hr/>");
-	hr.css("top",(canvasPages-1)*canvasHeight);
-	hr.appendTo("#paste-main .canvas-wrapper");
-}
-
-function removeSnippet(){
-	$("#paste-main img.active").remove();
 }
 
 $(document).ready(init);

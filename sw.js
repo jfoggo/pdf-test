@@ -6,7 +6,6 @@ var urlsToCache = [
 	'/pdf-test/logo.png',
 	'/pdf-test/main.css',
 	'/pdf-test/main.js',
-	'/pdf-test/manifest.json',
 	// JQUERY + JQUERY UI RESOURCES
 	'https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js',
 	'https://code.jquery.com/ui/1.12.1/jquery-ui.js',
@@ -37,7 +36,7 @@ self.addEventListener('install', function(event) {
 	);
 });
 
-
+/*
 // Fetch Event
 self.addEventListener('fetch', function(event) {
 	console.log("[SW] fetch event: ",event);
@@ -70,3 +69,4 @@ self.addEventListener('fetch', function(event) {
 		)
 	);
 });
+*/
