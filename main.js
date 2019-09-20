@@ -666,7 +666,7 @@ function setQuality(adj){
 }
 
 function appendPdfToCombineList(mf){
-	var elem = $("<div class='row'><div class='input-group'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon' style='cursor:move;'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' readonly value='"+mf.name+"'><span class='input-group-addon'><input type='number' style='width:3em' min='1' max='"+mf.pdf._pdfInfo.numPages+"' value='1'></span><span class='input-group-addon'><input type='number' min='1' max='"+mf.pdf._pdfInfo.numPages+"' style='width:3em' value='"+mf.pdf._pdfInfo.numPages+"'></span></div></div>")
+	var elem = $("<div class='row'><div class='input-group' style='height:40px;'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon' style='cursor:move;'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' style='height:40px;' readonly value='"+mf.name+"'><span class='input-group-addon'><input type='number' style='width:3em' min='1' max='"+mf.pdf._pdfInfo.numPages+"' value='1'></span><span class='input-group-addon'><input type='number' min='1' max='"+mf.pdf._pdfInfo.numPages+"' style='width:3em' value='"+mf.pdf._pdfInfo.numPages+"'></span></div></div>")
 	if ($("#combine-list .row").length == 0) {
 		$("#combine-list").empty();
 		$("#save-row").removeClass("hidden");
