@@ -222,7 +222,7 @@ function clickNavButton(event){
 	$(".panel-title").filter(function(i,e){
 		return li.attr("name") == $(e).text().trim().split(" ")[0];
 	}).click();
-	if (li.attr("name") == "Combine") $("nav button:visible").click();
+	if ($("nav .collapse").is(":visible")) $("nav button:visible").click();
 }
 
 function toggleSide(event){
@@ -667,7 +667,7 @@ function setQuality(adj){
 }
 
 function appendPdfToCombineList(mf){
-	var elem = $("<div class='row'><div class='input-group' style='height:40px;'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon' style='cursor:move;'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' style='height:40px;' value='"+mf.name+"'><span class='input-group-addon'><input type='number' style='width:3em' min='1' max='"+mf.pdf._pdfInfo.numPages+"' value='1'></span><span class='input-group-addon'><input type='number' min='1' max='"+mf.pdf._pdfInfo.numPages+"' style='width:3em' value='"+mf.pdf._pdfInfo.numPages+"'></span></div></div>")
+	var elem = $("<div class='row'><div class='input-group' style='height:40px;'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon' style='cursor:move;'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' style='height:40px;' value='"+mf.name+"'><span class='input-group-addon'><input type='number' style='width:4em' min='1' max='"+mf.pdf._pdfInfo.numPages+"' value='1'></span><span class='input-group-addon'><input type='number' min='1' max='"+mf.pdf._pdfInfo.numPages+"' style='width:4em' value='"+mf.pdf._pdfInfo.numPages+"'></span></div></div>")
 	if ($("#combine-list .row").length == 0) {
 		$("#combine-list").empty();
 		$("#save-row").removeClass("hidden");
