@@ -17,6 +17,8 @@ var canvasPages = 1;
 var canvasWidth,canvasHeight;
 var idCounter = 0;
 var currentlyRendering = false;
+var vp = 2;
+var lastMF;
 
 function init(){
 	$(".side-btn").click(toggleSide);
@@ -247,6 +249,7 @@ function addNewFile(event){
 						console.log("PDF converted to IMG src ...");
 						currentlyRendering = false;
 						var mf = new MediaFile(idCounter++,file.name,imgSrc,pdf);
+						lastMF = mf;
 						files.push(mf);
 						appendImage("#cut-files",imgSrc,file.name,mf);
 					}).catch(function(err){
@@ -273,9 +276,10 @@ function addNewFile(event){
 			console.log("Handling IMAGE file ...");
             fileReader.onload = function(event){
                 var mf = new MediaFile(idCounter++,file.name,event.target.result);
+				lastMF = mf;
 				files.push(mf);
                 appendImage("#cut-files",event.target.result,file.name,mf);
-				if (i == input.files.length-1) $("#cut-files img:last-of-type").click();
+				//if (i == input.files.length-1) $("#cut-files img:last-of-type").click();
             }
 			fileReader.onerror = function(err){
 				console.log(err);
@@ -293,7 +297,7 @@ function pdfToImgSrc(pdf,pageNr){
         var canvas = $("<canvas class='hidden'></canvas>");
         canvas.appendTo("body");
         pdf.getPage(pageNr).then(function(page){
-            var viewport = page.getViewport(3);
+            var viewport = page.getViewport(vp);
             canvas[0].width = viewport.width;
             canvas[0].height = viewport.height;
 			$("button").prop("disabled",true);
@@ -416,13 +420,14 @@ function drawImageOnCanvas(img,canvas){
 	canvas.getContext("2d").drawImage(img,0,0,iWidth,iHeight);
 	cut_scale.x = scale2;
 	cut_scale.y = scale2;
+	$("#quality-page").addClass("hidden");
 }
 
 function drawPdfOnCanvas(pdf,canvas,pageNr){
 	return new Promise(function(resolve,reject){
 		pageNr = parseInt(pageNr) ? pageNr : 1;
 		pdf.getPage(pageNr).then(function(page){
-			var viewport = page.getViewport(3);
+			var viewport = page.getViewport(vp);
 			var scale = 1, scale2 = 1;
 			if (viewport.width > canvasWidth2 || viewport.height > canvasHeight2){
 				if (viewport.width > canvasWidth2 && viewport.height > canvasHeight2) {
@@ -452,16 +457,19 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 				currentlyRendering = false;
 				if (canvas.closest("#cut-main").length > 0) $("#cur-page").text(pageNr);
 				resolve();
+				$("#quality-page").removeClass("hidden");
 			}).catch(function(...args){
 				$("button").prop("disabled",false);
 				currentlyRendering = false;
 				reject(...args);
-				//canvas.remove();
+				canvas.clone().appendTo(canvas.parent());
+				canvas.remove();
                 alert("Could not render PDF ... STEP 4");
 			});
 		}).catch(function(...args){
 			reject(...args);
-			//canvas.remove();
+			canvas.clone().appendTo(canvas.parent());
+			canvas.remove();
             alert("Could not render PDF ... STEP 5");
 		});
 	});
@@ -595,4 +603,15 @@ function enumeratePages(){
 		ctx.fillText("Page "+(i+1),c.width-size,120,size);
 	}
 }
+
+function setQuality(adj){
+	if (vp+adj >= 1 && vp+adj <= 10){
+		vp += adj;
+		if (lastMF) {
+			if (lastMF.pdf) drawPdfOnCanvas(lastMF.pdf,$("#cut-main canvas"),parseInt($("#cur-page").text()));
+			else drawImageOnCanvas($("<img src='"+lastMF.src+"'>")[0],$("#cut-main canvas")[0]);
+		}
+	}
+}
+
 $(document).ready(init);
