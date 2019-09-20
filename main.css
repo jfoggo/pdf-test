@@ -132,6 +132,10 @@ img.active {
 	animation: refresh 2s infinite;
 }
 
+#combineModal input[readonly] {
+	background: white;
+}
+
 @keyframes refresh {
 	from {
 		transform: rotateZ(0deg);

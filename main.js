@@ -107,6 +107,10 @@ function init(){
 	clearCanvas("#cut-main canvas");
 	
 	enumeratePages();
+	
+	/*$("#combine-list").sortable({
+		containment: "parent"
+	});*/
 }
 
 function canvasClickStart(event){
@@ -149,6 +153,7 @@ function canvasClickEnd(event){
 
 function cut_snippet(){
 	var s = $("#square");
+	if (!s.is(":visible")) return;
 	var ctx = $("#cut-main canvas")[0].getContext("2d");
 	var data = ctx.getImageData(parseFloat(s.css("left"))*cut_scale.x,parseFloat(s.css("top"))*cut_scale.y,parseFloat(s.css("width"))*cut_scale.x,parseFloat(s.css("height"))*cut_scale.y);
 	//var data = ctx.getImageData(parseFloat(s.css("left"))*cut_scale.x,parseFloat(s.css("top"))*cut_scale.y,parseFloat(s.css("width"))*cut_scale.x,parseFloat(s.css("height"))*cut_scale.y);
@@ -202,11 +207,12 @@ function clickPanel(event){
 	var h4 = $(event.target).closest("h4");
 	var txt = h4.text().trim().split(" ")[0];
 	if (txt == "Tools") return;
+	console.log(txt);
 	$("nav .active").removeClass("active");
 	$("li[name='"+txt+"']").addClass("active");
-	$("#cut-main, #paste-main").addClass("hidden");
-	$(txt == "Files" ? "#cut-main" : "#paste-main").removeClass("hidden");
-	$(".Files-tools, .Snippets-tools").addClass("hidden");
+	$("#cut-main, #paste-main, #combine-main").addClass("hidden");
+	$(txt == "Files" ? "#cut-main" : (txt == "Snippets" ? "#paste-main" : "#combine-main")).removeClass("hidden");
+	$(".Files-tools, .Snippets-tools, .Combine-tools").addClass("hidden");
 	$("."+txt+"-tools").removeClass("hidden");
 	$("#square").css("display","none");
 }
@@ -214,7 +220,7 @@ function clickPanel(event){
 function clickNavButton(event){
 	var li = $(event.target).closest("li");
 	$(".panel-title").filter(function(i,e){
-		return $(e).text().trim() == li.attr("name");
+		return li.attr("name") == $(e).text().trim().split(" ")[0];
 	}).click();
 }
 
@@ -224,7 +230,7 @@ function toggleSide(event){
 	var side,main;
 	$("#side h3, #side .col-xs-8, #side .panel-group, #side .panel-default, #side hr").toggleClass("hidden");
 	$("#side").toggleClass("col-xs-2 col-md-1 col-xs-6 col-md-4");
-	$("#main").toggleClass("col-xs-6 col-md-8 col-xs-10 col-md-10");
+	$("#main").toggleClass("col-xs-6 col-md-8 col-xs-10 col-md-11");
 	var div = btn.parent();
 	div.css("text-align",div.css("text-align")=="left"?"right":"left");
 }
@@ -249,6 +255,7 @@ function addNewFile(event){
 						console.log("PDF converted to IMG src ...");
 						currentlyRendering = false;
 						var mf = new MediaFile(idCounter++,file.name,imgSrc,pdf);
+						appendPdfToCombineList(mf);
 						lastMF = mf;
 						files.push(mf);
 						appendImage("#cut-files",imgSrc,file.name,mf);
@@ -476,6 +483,38 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 	});
 }
 
+function drawPdfOnCanvas2(pdf,canvas,pageNr){
+	return new Promise(function(resolve,reject){
+		pageNr = parseInt(pageNr) ? pageNr : 1;
+		pdf.getPage(pageNr).then(function(page){
+			var viewport = page.getViewport(2.5);
+			$(canvas).css({
+				width: viewport.width,
+				height: viewport.height
+			});
+			canvas[0].width = viewport.width;
+			canvas[0].height = viewport.height;
+			$("button").prop("disabled",true);
+			currentlyRendering = true;
+			var renderTask = page.render({canvasContext:canvas[0].getContext("2d"), viewport:viewport});
+			renderTask.promise.then(function(){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
+				if (canvas.closest("#cut-main").length > 0) $("#cur-page").text(pageNr);
+				resolve(viewport);
+			}).catch(function(...args){
+				$("button").prop("disabled",false);
+				currentlyRendering = false;
+				reject(...args);
+                alert("Could not render PDF ... STEP 4");
+			});
+		}).catch(function(...args){
+			reject(...args);
+            alert("Could not render PDF ... STEP 5");
+		});
+	});
+}
+
 function resizeActiveImage(faktor){
 	$("label[for='zoom-input']").text($("#zoom-input").val());
 	var active = $(".canvas-wrapper .active");
@@ -577,6 +616,7 @@ function clearCanvas(canvasId){
 		var ctx = canvas[i].getContext("2d");
 		ctx.clearRect(0,0,canvas[i].width,canvas[i].height);
 	}
+	enumeratePages();
 }
 
 function addPage(){
@@ -589,6 +629,16 @@ function addPage(){
 	enumeratePages();
 }
 
+function delPage(){
+	if (canvasPages > 1){
+		canvasPages--;
+		$("#paste-main .canvas-wrapper").css({
+			height: canvasPages*canvasHeight2,
+		});
+		$("#paste-main canvas:last-of-type").remove();
+		$("#paste-main canvas").css("height",100/canvasPages+"%");
+	}
+}
 function removeSnippet(){
 	$("#paste-main img.active").remove();
 }
@@ -615,4 +665,68 @@ function setQuality(adj){
 	}
 }
 
+function appendPdfToCombineList(mf){
+	var elem = $("<div class='row'><div class='input-group'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' readonly value='"+mf.name+"'></div></div>")
+	if ($("#combine-list .row").length == 0) {
+		$("#combine-list").empty();
+		$("#save-row").removeClass("hidden");
+	}
+	$("#combine-list").append(elem);
+	$("#combine-list").sortable({
+		axis: "y",
+		containment: "parent",
+		tolerance: "pointer"
+	});
+}
+
+function combinePdfs(){
+	$(".modal .btn").prop("disabled",true);
+	var checked = $(".modal input[type='checkbox']:checked");
+	let p = new Promise(function(resolve,reject){resolve();});
+	let p2 = new Promise(function(resolve,reject){resolve();});
+	let arr = [];
+	let rendered = 0;
+	var max = 0;
+	for (let i=0;i<checked.length;i++){
+		let pdf = files.filter((e)=>e.name == checked.eq(i).closest(".input-group").find("input[type='text']").val())[0].pdf;
+		max += pdf._pdfInfo.numPages;
+		p.then(function(){
+			for (let j=1;j<=pdf._pdfInfo.numPages;j++){
+				let c = $("<canvas class='hidden'></canvas>");
+				c.appendTo("body");
+				arr.push(c[0]);
+				p2.then(function(){
+					return drawPdfOnCanvas2(pdf,c,j);
+				}).then(function(viewport){
+					rendered++;
+					$(".modal .btn").prop("disabled",true);
+				});
+			}
+		});
+	}
+	p.then(function(){
+		$(".modal .btn").prop("disabled",true);
+		p2.then(function(){
+			var f = function(){
+				$(".modal .btn").prop("disabled",true);
+				if (rendered < max) {
+					setTimeout(f,500);
+					return;
+				}
+				$(".modal .btn").prop("disabled",true);
+				let combinedPdf = new jsPDF("p","mm",[arr[0].width*0.2645833333,arr[0].height*0.2645833333]);
+				for (let i=0;i<arr.length;i++){
+					console.log("=> "+arr[i].width+" "+arr[i].height);
+					if (i > 0) combinedPdf.addPage([arr[i].width*0.2645833333,arr[i].height*0.2645833333],"p");		// 1px = 0.2645833333 mm
+					let imgData = arr[i].toDataURL("image/jpeg",1.0);
+					combinedPdf.addImage(imgData,"JPEG",0,0);
+					$(arr[i]).remove();
+				}
+				combinedPdf.save("download.pdf");
+				$(".modal .btn").prop("disabled",false);
+			};
+			f();
+		});
+	});
+}
 $(document).ready(init);
