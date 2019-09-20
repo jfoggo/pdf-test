@@ -335,6 +335,7 @@ function appendImage(listId, imgSrc, fileName, mf){
 	});
 	$(listId).closest(".panel").find(".counter").text("("+(listId=="#cut-files"?files.length:snippets.length)+")");
 	img.click(function(event){
+		lastMF = mf;
 		if (listId == "#cut-files"){
 			var imgTag = $(event.target).find("img");
 			if (imgTag.length == 0) imgTag = $(event.target).closest("img");
