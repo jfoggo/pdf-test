@@ -103,6 +103,8 @@ function init(){
 	c.height = canvasHeight;
 	clearCanvas("#paste-main canvas");
 	clearCanvas("#cut-main canvas");
+	
+	enumeratePages();
 }
 
 function canvasClickStart(event){
@@ -196,7 +198,7 @@ function getCoordinates(event){
 
 function clickPanel(event){
 	var h4 = $(event.target).closest("h4");
-	var txt = h4.text().trim();
+	var txt = h4.text().trim().split(" ")[0];
 	if (txt == "Tools") return;
 	$("nav .active").removeClass("active");
 	$("li[name='"+txt+"']").addClass("active");
@@ -228,7 +230,7 @@ function toggleSide(event){
 function addNewFile(event){
 	var input = $("input[type='file']")[0];
 	console.log("ADDING NEW FILE");
-    for (var i=0;i<input.files.length;i++){
+    for (let i=0;i<input.files.length;i++){
         let file = input.files[i];
 		console.log("[*] Try adding file: "+file.name);
         let fileReader = new FileReader();
@@ -273,6 +275,7 @@ function addNewFile(event){
                 var mf = new MediaFile(idCounter++,file.name,event.target.result);
 				files.push(mf);
                 appendImage("#cut-files",event.target.result,file.name,mf);
+				if (i == input.files.length-1) $("#cut-files img:last-of-type").click();
             }
 			fileReader.onerror = function(err){
 				console.log(err);
@@ -326,6 +329,7 @@ function appendImage(listId, imgSrc, fileName, mf){
 		width: mf.width,
 		height: mf.height
 	});
+	$(listId).closest(".panel").find(".counter").text("("+(listId=="#cut-files"?files.length:snippets.length)+")");
 	img.click(function(event){
 		if (listId == "#cut-files"){
 			var imgTag = $(event.target).find("img");
@@ -342,7 +346,7 @@ function appendImage(listId, imgSrc, fileName, mf){
 				$("#switch-page").addClass("hidden");
 			}
 			if (!$("#tools-panel .panel-body").is(":visible")) $("#tools-panel h4").click();
-			$(listId).closest(".panel-default").find(".panel-title").click();
+			//$(listId).closest(".panel-default").find(".panel-title").click();
 		}
 	});
 	if (listId == "#merge-snippets") {
@@ -373,10 +377,14 @@ function appendImage(listId, imgSrc, fileName, mf){
 function removeImage(elem){
 	console.log("REMOVE: ",elem);
 	var div = $(elem).closest("div");
+	console.log("div: ",div);
 	var id = div.find("img").attr("id");
+	console.log("id: ",id);
 	files = files.filter(e=>e.id != id);
-	snipptets = snippets.filter(e=>e.id != id);
+	snippets = snippets.filter(e=>e.id != id);
 	div.remove();
+	$("#file-count").text("("+files.length+")");
+	$("#snippet-count").text("("+snippets.length+")");
 }
 
 function drawImageOnCanvas(img,canvas){
@@ -448,12 +456,12 @@ function drawPdfOnCanvas(pdf,canvas,pageNr){
 				$("button").prop("disabled",false);
 				currentlyRendering = false;
 				reject(...args);
-				canvas.remove();
+				//canvas.remove();
                 alert("Could not render PDF ... STEP 4");
 			});
 		}).catch(function(...args){
 			reject(...args);
-			canvas.remove();
+			//canvas.remove();
             alert("Could not render PDF ... STEP 5");
 		});
 	});
@@ -480,76 +488,111 @@ function saveAsPdf(){
 			2) Search for jsPDF library to download canvas as pdf
 			3) trigger download
 	*/
-	var imgs = $(".canvas-wrapper img");
-	imgs.sort(function(a,b){
-		return parseInt($(a).css("z-index")) > parseInt($(b).css("z-index"));
-	});
-	var canvas = $("#paste-main canvas")[0];
-	var ctx = canvas.getContext("2d");
-	// Draw white background
-	ctx.rect(0,0,canvasWidth,canvasPages*canvasHeight);
-	ctx.fillStyle = "white";
-	ctx.fill();
-	var wrapper = $(canvas).closest(".canvas-wrapper");
-	var scaled = {
-		x: canvas.width/wrapper.outerWidth(),
-		y: canvas.height/wrapper.outerHeight()
-	}
-	for (var i=0;i<imgs.length;i++){
-		console.log(imgs.eq(i));
-		var x = parseFloat(imgs.eq(i).css("left"));
-		var y = parseFloat(imgs.eq(i).css("top"));
-		var w = parseFloat(imgs.eq(i).outerWidth());
-		var h = parseFloat(imgs.eq(i).outerHeight());
-		ctx.drawImage(imgs[i],x*scaled.x,y*scaled.y,w*scaled.x,h*scaled.y);
-	}
+	$("#loader").removeClass("hidden");
+	console.log("=> ON");
+	setTimeout(function(){
+		var imgs = $(".canvas-wrapper img");
+		imgs.sort(function(a,b){
+			return parseInt($(a).css("z-index")) > parseInt($(b).css("z-index"));
+		});
+		var allCanvas = $("#paste-main canvas");
+		var downloadPdf = new jsPDF("p","mm",[canvasWidth*0.2645833333,canvasHeight*0.2645833333]);	// 1px = 0.2645833333 mm
+		downloadPdf.setProperties({
+			title: 'Customized PDF',
+			subject: 'Generated via PDF-Generator (https://jfoggo.github.io/pdf-test)',		
+			author: 'J.Foggo',
+			keywords: 'generated, javascript, pdf, customized',
+			creator: 'J.Foggo'
+		});
+		for (var j=0;j<allCanvas.length;j++){
+			var canvas = allCanvas[j];
+			var ctx = canvas.getContext("2d");
+			// Draw white background
+			ctx.rect(0,0,canvasWidth,canvasHeight);
+			ctx.fillStyle = "white";
+			ctx.fill();
+			enumeratePages();
+			var wrapper = $(canvas).closest(".canvas-wrapper");
+			var scaled = {
+				x: canvas.width/wrapper.outerWidth(),
+				y: canvas.height/$(canvas).outerHeight(),
+			}
+			for (var i=0;i<imgs.length;i++){
+				if (!overlapping($(canvas),imgs.eq(i))) continue;
+				var x = parseFloat(imgs.eq(i).css("left"));
+				var y = parseFloat(imgs.eq(i).css("top"))-(j*$(canvas).outerHeight());
+				var w = parseFloat(imgs.eq(i).outerWidth());
+				var h = parseFloat(imgs.eq(i).outerHeight());
+				console.log(x,y,w,h,scaled);
+				ctx.drawImage(imgs[i],x*scaled.x,y*scaled.y,w*scaled.x,h*scaled.y);
+			}
+			var imgData = canvas.toDataURL("image/jpeg",1.0);
+			if (j > 0) downloadPdf.addPage([canvasWidth*0.2645833333,canvasHeight*0.2645833333],"p");		// 1px = 0.2645833333 mm
+			downloadPdf.addImage(imgData,"JPEG",0,0);
+			ctx.rect(0,0,canvasWidth,canvasHeight);
+			ctx.fillStyle = "white";
+			ctx.fill();
+		}
+		downloadPdf.save("download.pdf");
+		enumeratePages();
+		$("#loader").addClass("hidden");
+		console.log("=> OFF");
+	},100);
 	
-	var downloadPdf = new jsPDF("p","mm",[canvasWidth*0.2645833333,canvasHeight*0.2645833333]);	// 1px = 0.2645833333 mm
-	var c = $("<canvas class='hidden'></canvas>");
-	c.appendTo("body");
-	c.css({
-		width: canvasWidth,
-		height: canvasHeight
-	});
-	c[0].width = canvasWidth;
-	c[0].height = canvasHeight;
-	var ct = c[0].getContext("2d");
-	for (var i=0;i<canvasPages;i++){
-		ct.drawImage(canvas,0,i*canvasHeight,canvasWidth,canvasHeight,0,0,canvasWidth,canvasHeight);
-		var imgData = c[0].toDataURL("image/jpeg",1.0);
-		if (i > 0) downloadPdf.addPage([canvasWidth*0.2645833333,canvasHeight*0.2645833333],"p");		// 1px = 0.2645833333 mm
-		downloadPdf.addImage(imgData,"JPEG",0,0);
-	}
-	c.remove();
-	downloadPdf.save("download.pdf");
-	/*ctx.rect(0,0,1000*1000,1000*1000);
-	ctx.fillStyle = "white";
-	ctx.fill();*/
 }
+
+var overlapping = function( div1, div2 ) {
+	// Div 1 data
+	var d1_offset             = div1.offset();
+	var d1_height             = div1.outerHeight( true );
+	var d1_width              = div1.outerWidth( true );
+	var d1_distance_from_top  = d1_offset.top + d1_height;
+	var d1_distance_from_left = d1_offset.left + d1_width;
+
+	// Div 2 data
+	var d2_offset             = div2.offset();
+	var d2_height             = div2.outerHeight( true );
+	var d2_width              = div2.outerWidth( true );
+	var d2_distance_from_top  = d2_offset.top + d2_height;
+	var d2_distance_from_left = d2_offset.left + d2_width;
+
+	var not_colliding = ( d1_distance_from_top < d2_offset.top || d1_offset.top > d2_distance_from_top || d1_distance_from_left < d2_offset.left || d1_offset.left > d2_distance_from_left );
+
+	// Return whether it IS colliding
+	return ! not_colliding;
+};
 
 function clearCanvas(canvasId){
-	var canvas = $(canvasId)[0];
-	var ctx = canvas.getContext("2d");
-	ctx.clearRect(0,0,canvas.width,canvas.height);
+	var canvas = $(canvasId);
+	for (var i=0;i<canvas.length;i++){
+		var ctx = canvas[i].getContext("2d");
+		ctx.clearRect(0,0,canvas[i].width,canvas[i].height);
+	}
 }
-
-document.addEventListener('webviewerloaded', function() {
-  PDFViewerApplicationOptions.set('printResolution', 300);
-});
 
 function addPage(){
 	canvasPages++;
 	$("#paste-main .canvas-wrapper").css({
 		height: canvasPages*canvasHeight2,
 	});
-	$("#paste-main canvas")[0].height = canvasPages * canvasHeight;
-	var hr = $("<hr/>");
-	hr.css("top",(canvasPages-1)*canvasHeight2);
-	hr.appendTo("#paste-main .canvas-wrapper");
+	$("#paste-main .canvas-wrapper").append("<canvas width="+canvasWidth+" height="+canvasHeight+"></canvas>");
+	$("#paste-main canvas").css("height",100/canvasPages+"%");
+	enumeratePages();
 }
 
 function removeSnippet(){
 	$("#paste-main img.active").remove();
 }
 
+function enumeratePages(){
+	var allCanvas = $("#paste-main canvas");
+	for (var i=0;i<allCanvas.length;i++){
+		var c = allCanvas[i];
+		var ctx = c.getContext("2d");
+		ctx.font = "50px Arial";
+		ctx.fillStyle = "black";
+		var size = 220;
+		ctx.fillText("Page "+(i+1),c.width-size,120,size);
+	}
+}
 $(document).ready(init);

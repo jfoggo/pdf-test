@@ -37,6 +37,9 @@ body {
 	border-right: solid black 1px;
 	transition: width 0.5s ease, height 0.5s ease, left 0.5s ease;
 }
+#paste-main .canvas-wrapper {
+	border: none;
+}
 @media only screen and (max-width: 600px) {
 	.canvas-wrapper {
 		width: 600px;
@@ -95,4 +98,45 @@ img.active {
 }
 .hover-red:hover {
 	color: red !important;
+}
+#paste-main canvas {
+	border: solid black 1px;
+	border-bottom-width: 0px;
+	float: left;
+}
+#paste-main canvas:first-of-type {
+	//margin-top: 5px;
+}
+
+#paste-main canvas:last-of-type {
+	border-bottom-width: 1px;
+	margin-bottom: 5px;
+}
+#file-count, #snippet-count {
+	color: grey;
+}
+#loader {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	background: #ccc;
+	opacity: 0.5;
+	height: 100vh;
+	width: 100%;
+	text-align: center;
+	padding-top: 30vh;
+}
+#loader .glyphicon {
+	color: black;
+	font-size: 15vw;
+	animation: refresh 2s infinite;
+}
+
+@keyframes refresh {
+	from {
+		transform: rotateZ(0deg);
+	}
+	to {
+		transform: rotateZ(360deg);
+	}
 }

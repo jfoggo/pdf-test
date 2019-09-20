@@ -61,7 +61,7 @@
 										<div class="panel panel-default">
 											<div id="heading1" class="panel-heading" role="tab">
 												<h4 class="panel-title"  role="button" data-toggle="collapse" data-parent="#cut-accordion" href="#collapse1" aria-expanded="true" aria-controls="collapse-1">
-													<span>Files</span>
+													<span>Files <span id="file-count" class="counter">(0)</span></span>
 												</h4>
 											</div>
 											<div id="collapse1" class="panel-collapse collapse in" role="tabpanel">
@@ -85,7 +85,7 @@
 										<div class="panel panel-default">
 											<div id="heading2" class="panel-heading" role="tab">
 												<h4 class="panel-title"  role="button" data-toggle="collapse" data-parent="#cut-accordion" href="#collapse2" aria-expanded="true" aria-controls="collapse-2">
-													<span>Snippets</span>
+													<span>Snippets <span id="snippet-count" class="counter">(0)</span></span>
 												</h4>
 											</div>
 											<div id="collapse2" class="panel-collapse collapse" role="tabpanel">
@@ -214,6 +214,9 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div id="loader" class="container-fluid hidden">
+			<span class="glyphicon glyphicon-refresh"></span>
 		</div>
 		<script>
 			if ('serviceWorker' in navigator) {
