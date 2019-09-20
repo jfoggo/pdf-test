@@ -666,7 +666,7 @@ function setQuality(adj){
 }
 
 function appendPdfToCombineList(mf){
-	var elem = $("<div class='row'><div class='input-group'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' readonly value='"+mf.name+"'></div></div>")
+	var elem = $("<div class='row'><div class='input-group'><span class='input-group-addon'><input type='checkbox'></span><span class='input-group-addon' style='cursor:move;'><span class=' glyphicon glyphicon-resize-vertical'></span></span><input type='text' class='form-control' readonly value='"+mf.name+"'><span class='input-group-addon'><input type='number' style='width:3em' min='1' max='"+mf.pdf._pdfInfo.numPages+"' value='1'></span><span class='input-group-addon'><input type='number' min='1' max='"+mf.pdf._pdfInfo.numPages+"' style='width:3em' value='"+mf.pdf._pdfInfo.numPages+"'></span></div></div>")
 	if ($("#combine-list .row").length == 0) {
 		$("#combine-list").empty();
 		$("#save-row").removeClass("hidden");
@@ -680,8 +680,9 @@ function appendPdfToCombineList(mf){
 }
 
 function combinePdfs(){
-	$(".modal .btn").prop("disabled",true);
 	var checked = $(".modal input[type='checkbox']:checked");
+	if (checked.length == 0) return;
+	$(".modal .btn").prop("disabled",true);
 	let p = new Promise(function(resolve,reject){resolve();});
 	let p2 = new Promise(function(resolve,reject){resolve();});
 	let arr = [];
@@ -689,9 +690,13 @@ function combinePdfs(){
 	var max = 0;
 	for (let i=0;i<checked.length;i++){
 		let pdf = files.filter((e)=>e.name == checked.eq(i).closest(".input-group").find("input[type='text']").val())[0].pdf;
-		max += pdf._pdfInfo.numPages;
+		var nums = checked.eq(i).closest(".input-group").find("input[type='number']");
+		var minJ = nums.eq(0).val();
+		var maxJ = nums.eq(1).val();
+		max += maxJ-minJ+1;
 		p.then(function(){
 			for (let j=1;j<=pdf._pdfInfo.numPages;j++){
+				if (!(minJ <= j && j <= maxJ)) continue;
 				let c = $("<canvas class='hidden'></canvas>");
 				c.appendTo("body");
 				arr.push(c[0]);
