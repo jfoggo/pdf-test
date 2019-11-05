@@ -286,6 +286,11 @@
 				});
 			}
 			else console.log("[*] ServiceWorker not supported by your browser!");
+
+			window.addEventListener("beforeinstallprompt",function(event){ 
+				showInstallPromotion(); 
+				event.prompt();
+			});
 		</script>
     </body>
 </html>
